@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Yes-And Idea Jam</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --panel: #fff; --ink: #1f2328; --muted: #5d636b; --line: #d9d5cc;
+    --accent: #6b3fd4; --accent-ink: #fff; --keep: #b7791f; --err-bg: #fdecec; --err: #9b1c1c;
+    --ok-bg: #edf7ee; --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  header h1 { margin: 0; font-size: 1.5rem; }
+  header p { margin: 2px 0 12px; color: var(--muted); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; }
+  .panel h2 { font-size: 1rem; margin: 0 0 8px; }
+  .grid { display: grid; gap: 10px 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: end; }
+  .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .field > label, .field > .lbl { font-weight: 600; font-size: .85rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  input[type=text], input[type=password], input[type=number], select, textarea {
+    width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 7px; background: #fff;
+  }
+  textarea { resize: vertical; min-height: 72px; }
+  input[type=range] { width: 100%; }
+  .hint { font-size: .8rem; color: var(--muted); }
+  .btn { border: 1px solid var(--line); background: #fff; border-radius: 7px; padding: 6px 11px; cursor: pointer; white-space: nowrap; }
+  .btn:hover:not(:disabled) { border-color: var(--accent); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn.small { padding: 3px 8px; font-size: .85rem; }
+  .btn.kept { background: #fff7e6; border-color: var(--keep); }
+  .msg { border-radius: 7px; padding: 8px 10px; margin: 8px 0 0; }
+  .msg.error { background: var(--err-bg); color: var(--err); }
+  .msg.info { background: var(--ok-bg); }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; align-items: start; }
+  @media (max-width: 820px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+  .thread { display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 10px 12px; }
+  .card.d0 { border-left-color: #2f6fdb; }
+  .card.is-kept { box-shadow: 0 0 0 2px #f2d08a inset; }
+  .card.incomplete { border-left-color: var(--err); }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+  .tag { background: #efeaff; color: #44288f; border-radius: 999px; padding: 1px 8px; font-weight: 600; }
+  .tag.lens, .tag.domain { background: #e8f4ff; color: #174a7c; }
+  .tag.warn { background: var(--err-bg); color: var(--err); }
+  .content { white-space: pre-wrap; overflow-wrap: anywhere; margin: 4px 0 8px; }
+  .content.pending { color: var(--muted); font-style: italic; }
+  .actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .menu { position: relative; }
+  .menu-list { position: absolute; z-index: 10; top: calc(100% + 4px); left: 0; min-width: 240px; max-width: calc(100vw - 48px); max-height: 320px; overflow: auto;
+    background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 4px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+  .menu-list button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; }
+  .menu-list button:hover, .menu-list button:focus-visible { background: #f1edff; }
+  .menu-list small { display: block; color: var(--muted); }
+  aside .kept-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  aside .kept-list li { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  aside a { color: var(--accent); }
+  .empty { color: var(--muted); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  #boot { max-width: 640px; margin: 40px auto; padding: 16px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="boot" role="status">
+    <strong>Loading Yes-And Idea Jam…</strong>
+    <p id="boot-detail">This page loads Preact and htm from esm.sh. It needs an internet connection; nothing is installed.</p>
+  </div>
+</div>
+
+<script>
+  // Shown only if the CDN modules never mount the app.
+  setTimeout(function () {
+    if (window.__jamMounted) return;
+    var d = document.getElementById('boot-detail');
+    if (d) d.textContent = 'The app could not load its modules from https://esm.sh. Check your internet connection, ' +
+      'disable blockers for esm.sh, or try another browser. No token has been sent anywhere.';
+  }, 10000);
+</script>
+
+<script type="module">
+import { h, render } from 'https://esm.sh/preact@10.24.3';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'https://esm.sh/preact@10.24.3/hooks';
+import htm from 'https://esm.sh/htm@3.1.1';
+
+const html = htm.bind(h);
+
+// ---------------------------------------------------------------- config
+const ENDPOINT = 'https://router.huggingface.co/v1/chat/completions';
+const STORAGE_KEY = 'yesAndJam.hfToken';
+const MODEL_PRESETS = [
+  { id: 'meta-llama/Llama-3.1-8B-Instruct', label: 'Llama 3.1 8B Instruct' },
+  { id: 'Qwen/Qwen2.5-7B-Instruct', label: 'Qwen 2.5 7B Instruct' },
+];
+const CUSTOM = '__custom__';
+const TEMP = { min: 0.3, max: 1.3, step: 0.1, def: 0.8 };
+const TOKENS = { min: 128, max: 1024, def: 384 };
+
+const PROMPTS = {
+  shared: 'Generate one concrete concept in about 120 words. Give it a short title, explain how it works, and suggest one small experiment. Treat the supplied seed and branch as creative material.',
+  actions: {
+    seed:    { label: 'Seed idea', instruction: 'Start with ‘Yes, and…’ and add a surprising, useful development.' },
+    yesand:  { label: 'Yes-and',   instruction: 'Start with ‘Yes, and…’ and add a surprising, useful development.' },
+    flip:    { label: 'Flip it',   instruction: 'Name a conventional assumption, reverse it, and explain how the reversal could work.' },
+    lens:    { label: 'Lens',      instruction: 'Reimagine the idea through the selected lens. Explain the borrowed principle and its application.' },
+    collide: { label: 'Collide',   instruction: 'Fuse the idea with the selected domain. Explain the connection and a concrete concept.' },
+  },
+  lenses: [
+    { name: 'Child', hint: 'Ask literal, playful questions and keep only what delights.' },
+    { name: '2080 historian', hint: 'Look back from 2080 at how this idea changed everyday life.' },
+    { name: 'Biologist', hint: 'Borrow a mechanism from living systems.' },
+    { name: 'Regulator', hint: 'Design around safety, fairness and accountability rules.' },
+    { name: 'Ant-colony architect', hint: 'Replace central coordination with local signals.' },
+    { name: 'Jazz bandleader', hint: 'Use improvisation, turn-taking and recurring motifs.' },
+    { name: 'Museum curator', hint: 'Turn ordinary interactions into exhibits and stories.' },
+    { name: 'Disaster-response coordinator', hint: 'Make the idea work with scarce resources and intermittent connectivity.' },
+    { name: 'Game designer', hint: 'Introduce quests, asymmetric roles and meaningful choices.' },
+  ],
+  domains: ['coral reefs', 'street markets', 'space missions', 'libraries', 'fermentation', 'theater',
+            'beekeeping', 'railway timetables', 'tide pools', 'knitting circles'],
+};
+
+// ---------------------------------------------------------------- pure helpers
+let idCounter = 0;
+const newId = () => `c${Date.now().toString(36)}${(idCounter++).toString(36)}`;
+
+function ancestry(cards, card) {
+  const byId = new Map(cards.map(c => [c.id, c]));
+  const chain = [];
+  for (let c = card; c; c = c.parentId ? byId.get(c.parentId) : null) chain.unshift(c);
+  return chain; // root first
+}
+
+function moveLabel(card) {
+  const base = PROMPTS.actions[card.action]?.label || card.action;
+  if (card.action === 'lens') return `${base}: ${card.lens}`;
+  if (card.action === 'collide') return `${base} with ${card.domain}`;
+  return base;
+}
+
+function titleOf(card) {
+  const first = (card.content || '').split('\n').map(s => s.trim()).find(Boolean) || '(untitled)';
+  return first.replace(/^#+\s*/, '').replace(/\*\*/g, '').replace(/^title:\s*/i, '').slice(0, 90);
+}
+
+function buildMessages(seed, chain, card) {
+  const act = PROMPTS.actions[card.action];
+  let system = `${PROMPTS.shared}\n\n${act.instruction}`;
+  if (card.action === 'lens') {
+    const lens = PROMPTS.lenses.find(l => l.name === card.lens);
+    system += `\nLens: ${card.lens} — ${lens ? lens.hint : ''}`;
+  }
+  if (card.action === 'collide') system += `\nDomain: ${card.domain}`;
+  let user = `Seed:\n${seed}`;
+  if (chain.length) {
+    user += '\n\nBranch so far (oldest first):\n' +
+      chain.map((c, i) => `${i + 1}. [${moveLabel(c)}]\n${c.content}`).join('\n\n');
+    user += '\n\nBuild on the last idea in the branch.';
+  }
+  return [{ role: 'system', content: system }, { role: 'user', content: user }];
+}
+
+class JamError extends Error {}
+
+async function describeHttpError(res) {
+  let detail = '';
+  try {
+    const text = await res.text();
+    try { const j = JSON.parse(text); detail = (typeof j.error === 'string' ? j.error : j.error?.message) || j.message || text; }
+    catch { detail = text; }
+  } catch { /* ignore */ }
+  detail = String(detail || '').replace(/\s+/g, ' ').slice(0, 200);
+  const s = res.status;
+  const suffix = detail ? ` (${detail})` : '';
+  if (s === 401) return 'Your Hugging Face token is invalid or expired. Create a new token and paste it again.';
+  if (s === 402) return 'Inference credits or payment required. Your Hugging Face free credits may be used up.' + suffix;
+  if (s === 403) return 'Permission or model access denied. Check the token has “Make calls to Inference Providers” permission and access to this model.' + suffix;
+  if (s === 429) return 'Rate limit reached. Wait a moment, then retry.';
+  if (s === 404 || ((s === 400 || s === 422) && /model|provider/i.test(detail)))
+    return 'This model is unavailable right now. Select another preset or edit the model ID.' + suffix;
+  if (s >= 500) return `The Hugging Face service failed (HTTP ${s}). Retry manually.`;
+  return `Request failed (HTTP ${s}).` + suffix;
+}
+
+// Parses an SSE byte stream, yielding each event's data string.
+async function* sseData(body) {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buf = '';
+  const parse = function* (block) {
+    const data = block.split(/\r?\n/).filter(l => l.startsWith('data:')).map(l => l.slice(5).replace(/^ /, '')).join('\n');
+    if (data) yield data;
+  };
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      let m;
+      while ((m = /\r?\n\r?\n/.exec(buf))) {
+        const block = buf.slice(0, m.index);
+        buf = buf.slice(m.index + m[0].length);
+        yield* parse(block);
+      }
+    }
+    buf += decoder.decode();
+    if (buf.trim()) yield* parse(buf);
+  } finally {
+    reader.cancel().catch(() => {}); // release the connection if the consumer stops early ([DONE] or error)
+  }
+}
+
+// Calls the HF router. onDelta receives the accumulated text so far.
+async function generate({ token, payload, signal, onDelta }) {
+  let res;
+  try {
+    res = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload),
+      signal,
+    });
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    throw new JamError('Network or connection failure reaching Hugging Face. Check your connection and retry manually.');
+  }
+  if (!res.ok) throw new JamError(await describeHttpError(res));
+
+  const type = res.headers.get('content-type') || '';
+  if (type.includes('text/event-stream') && res.body) {
+    let text = '';
+    for await (const data of sseData(res.body)) {
+      if (data.trim() === '[DONE]') break;
+      let j;
+      try { j = JSON.parse(data); } catch { continue; }
+      if (j.error) throw new JamError(`The model stream reported an error: ${String(j.error.message || j.error).slice(0, 200)}`);
+      const delta = j.choices?.[0]?.delta?.content;
+      if (delta) { text += delta; onDelta(text); }
+    }
+    return text;
+  }
+  let j;
+  try { j = await res.json(); } catch { throw new JamError('The service returned an unreadable response. Retry manually.'); }
+  const text = j.choices?.[0]?.message?.content;
+  if (typeof text !== 'string') throw new JamError('The service response contained no idea text. Retry manually.');
+  onDelta(text);
+  return text;
+}
+
+function toMarkdown(cards) {
+  const kept = cards.filter(c => c.kept && c.status === 'done');
+  const roots = [...new Set(kept.map(c => ancestry(cards, c)[0]))];
+  const out = ['# Yes-And Idea Jam', '', `Exported ${new Date().toISOString()}`, ''];
+  roots.forEach((root, ri) => {
+    out.push(`## Seed ${roots.length > 1 ? ri + 1 : ''}`.trim(), '', ...root.seed.split('\n').map(l => `> ${l}`), '');
+    kept.filter(c => ancestry(cards, c)[0] === root).forEach(c => {
+      const chain = ancestry(cards, c);
+      out.push(`### #${c.num} ${titleOf(c)}`, '',
+        `- Move: ${moveLabel(c)}`,
+        `- Branch: ${chain.map(a => `#${a.num} ${moveLabel(a)}`).join(' → ')}`,
+        `- Model: ${c.settings.model} (temperature ${c.settings.temperature}, max tokens ${c.settings.max_tokens})`,
+        '', c.content.trim(), '');
+    });
+  });
+  return out.join('\n');
+}
+
+// ---------------------------------------------------------------- storage
+function storageGet() { try { return localStorage.getItem(STORAGE_KEY); } catch { return null; } }
+function storageSet(v) { try { localStorage.setItem(STORAGE_KEY, v); return null; } catch { return 'Could not save the token in this browser (storage blocked). It is kept for this session only.'; } }
+function storageDel() { try { localStorage.removeItem(STORAGE_KEY); return null; } catch { return 'Could not clear browser storage. Clear site data manually to remove a remembered token.'; } }
+
+// ---------------------------------------------------------------- components
+function Menu({ label, disabled, items, onPick }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef();
+  useEffect(() => {
+    if (!open) return;
+    const away = e => { if (!ref.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', away);
+    return () => document.removeEventListener('mousedown', away);
+  }, [open]);
+  const onKey = e => { if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false); ref.current.querySelector('button').focus(); } };
+  return html`<div class="menu" ref=${ref} onKeyDown=${onKey}>
+    <button class="btn small" type="button" disabled=${disabled} aria-haspopup="true" aria-expanded=${open}
+      onClick=${() => setOpen(o => !o)}>${label}</button>
+    ${open && html`<div class="menu-list">
+      ${items.map(it => html`<button type="button" onClick=${() => { setOpen(false); onPick(it.value); }}>
+        ${it.label}${it.hint && html`<small>${it.hint}</small>`}</button>`)}
+    </div>`}
+  </div>`;
+}
+
+function Card({ card, depth, parent, busy, onAct, onKeep }) {
+  const generating = card.status === 'streaming';
+  return html`<article id=${card.id} class=${`card d${Math.min(depth, 3)} ${card.kept ? 'is-kept' : ''} ${card.status === 'incomplete' ? 'incomplete' : ''}`}
+      style=${{ marginLeft: `${Math.min(depth, 3) * 22}px` }} aria-busy=${generating}>
+    <div class="card-meta">
+      <span>#${card.num}</span>
+      <span class="tag">${PROMPTS.actions[card.action].label}</span>
+      ${card.lens && html`<span class="tag lens">Lens: ${card.lens}</span>`}
+      ${card.domain && html`<span class="tag domain">Domain: ${card.domain}</span>`}
+      ${parent && html`<span>↳ from <a href=${'#' + parent.id}>#${parent.num}</a>${depth > 3 ? ` (level ${depth})` : ''}</span>`}
+      ${card.status === 'incomplete' && html`<span class="tag warn">incomplete</span>`}
+      <span title="Settings used for this request">${card.settings.model.split('/').pop()} · T${card.settings.temperature} · ${card.settings.max_tokens} tok</span>
+    </div>
+    <div class=${`content ${generating && !card.content ? 'pending' : ''}`} aria-live=${generating ? 'polite' : 'off'}>
+      ${card.content || (generating ? 'Generating…' : '')}
+    </div>
+    ${card.status !== 'streaming' && html`<div class="actions">
+      <button class="btn small" type="button" disabled=${busy} onClick=${() => onAct(card, 'yesand')}>Yes-and</button>
+      <button class="btn small" type="button" disabled=${busy} onClick=${() => onAct(card, 'flip')}>Flip it</button>
+      <${Menu} label="Lens ▾" disabled=${busy}
+        items=${PROMPTS.lenses.map(l => ({ value: l.name, label: l.name, hint: l.hint }))}
+        onPick=${lens => onAct(card, 'lens', { lens })} />
+      <${Menu} label="Collide with…" disabled=${busy}
+        items=${[{ value: null, label: '🎲 Surprise me' }, ...PROMPTS.domains.map(d => ({ value: d, label: d }))]}
+        onPick=${d => onAct(card, 'collide', { domain: d || PROMPTS.domains[Math.floor(Math.random() * PROMPTS.domains.length)] })} />
+      ${card.status === 'done' && html`<button class=${`btn small ${card.kept ? 'kept' : ''}`} type="button" aria-pressed=${card.kept}
+        onClick=${() => onKeep(card.id)}>${card.kept ? '★ Kept' : '☆ Keep'}</button>`}
+    </div>`}
+  </article>`;
+}
+
+function App() {
+  const stored = useMemo(storageGet, []);
+  const [token, setToken] = useState(stored || '');
+  const [remember, setRemember] = useState(!!stored);
+  const [storageMsg, setStorageMsg] = useState('');
+  const [preset, setPreset] = useState(MODEL_PRESETS[0].id);
+  const [customModel, setCustomModel] = useState('');
+  const [temperature, setTemperature] = useState(TEMP.def);
+  const [maxTokens, setMaxTokens] = useState(TOKENS.def);
+  const [stream, setStream] = useState(true);
+  const [seed, setSeed] = useState('');
+  const [cards, setCards] = useState([]);
+  const [busyId, setBusyId] = useState(null);
+  const [error, setError] = useState('');
+  const ctrlRef = useRef(null);
+  const numRef = useRef(0);
+
+  useEffect(() => { window.__jamMounted = true; }, []);
+
+  const model = preset === CUSTOM ? customModel.trim() : preset;
+
+  const onToken = v => {
+    setToken(v);
+    if (remember) setStorageMsg((v.trim() ? storageSet(v.trim()) : storageDel()) || '');
+  };
+  const onRemember = checked => {
+    setRemember(checked);
+    if (checked) {
+      const err = token.trim() ? storageSet(token.trim()) : null;
+      setStorageMsg(err || (token.trim() ? 'Token saved in this browser.' : 'Token will be saved once entered.'));
+    } else {
+      setStorageMsg(storageDel() || 'Stored token removed. It stays in this tab until you reload or Forget.');
+    }
+  };
+  const onForget = () => {
+    ctrlRef.current?.abort();
+    setToken(''); setRemember(false);
+    setStorageMsg(storageDel() || 'Token forgotten.');
+  };
+
+  const run = useCallback(async (parent, action, extra = {}) => {
+    if (busyId) return;
+    setError('');
+    const tok = token.trim();
+    if (!tok) { setError('Paste your Hugging Face token to start.'); return; }
+    if (!model || /\s/.test(model)) { setError('Enter a model ID such as owner/model-name.'); return; }
+    let rootSeed;
+    if (!parent) {
+      rootSeed = seed.trim();
+      if (!rootSeed) { setError('Write a seed idea first.'); return; }
+    }
+    const settings = { model, temperature, max_tokens: maxTokens };
+    const card = {
+      id: newId(), num: ++numRef.current, parentId: parent ? parent.id : null, action,
+      lens: extra.lens || null, domain: extra.domain || null, seed: rootSeed || null,
+      content: '', status: 'streaming', kept: false, settings,
+    };
+    const chain = parent ? ancestry(cards, parent) : [];
+    const messages = buildMessages(parent ? chain[0].seed : rootSeed, chain, card);
+    const payload = { model: settings.model, messages, temperature: settings.temperature, max_tokens: settings.max_tokens, stream };
+
+    const ctrl = new AbortController();
+    ctrlRef.current = ctrl;
+    setBusyId(card.id);
+    setCards(cs => [...cs, card]);
+    const patch = p => setCards(cs => cs.map(c => (c.id === card.id ? { ...c, ...p } : c)));
+    let latest = '';
+    try {
+      const text = await generate({ token: tok, payload, signal: ctrl.signal, onDelta: t => { latest = t; patch({ content: t }); } });
+      if (!text.trim()) throw new JamError('The model returned an empty response. Retry, or try another model.');
+      patch({ content: text, status: 'done' });
+    } catch (e) {
+      const msg = e.name === 'AbortError' ? 'Generation stopped.' : e instanceof JamError ? e.message : 'Unexpected error while reading the response. Retry manually.';
+      setError(msg);
+      if (latest.trim()) patch({ status: 'incomplete' });
+      else setCards(cs => cs.filter(c => c.id !== card.id));
+    } finally {
+      if (ctrlRef.current === ctrl) ctrlRef.current = null;
+      setBusyId(null);
+    }
+  }, [busyId, token, model, seed, temperature, maxTokens, stream, cards]);
+
+  const toggleKeep = id => setCards(cs => cs.map(c => (c.id === id ? { ...c, kept: !c.kept } : c)));
+
+  const exportMd = () => {
+    const blob = new Blob([toMarkdown(cards)], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'idea-jam.md' });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const clearJam = () => {
+    if (busyId || !cards.length) return;
+    if (confirm('Remove all ideas from this jam? Kept ideas will be lost unless exported.')) { setCards([]); numRef.current = 0; }
+  };
+
+  // Depth-first ordering so each child sits beneath its parent, after earlier siblings.
+  const ordered = useMemo(() => {
+    const kids = new Map();
+    cards.forEach(c => { const k = c.parentId || ''; if (!kids.has(k)) kids.set(k, []); kids.get(k).push(c); });
+    const out = [];
+    const walk = (pid, depth, parent) => (kids.get(pid) || []).forEach(c => { out.push({ card: c, depth, parent }); walk(c.id, depth + 1, c); });
+    walk('', 0, null);
+    return out;
+  }, [cards]);
+
+  const kept = cards.filter(c => c.kept && c.status === 'done');
+  const busy = !!busyId;
+
+  return html`<div class="wrap">
+    <header>
+      <h1>Yes-And Idea Jam</h1>
+      <p>Plant a seed, then branch it with Yes-and, Flip, Lens or Collide. Uses Hugging Face Inference Providers (limited free monthly credits).</p>
+    </header>
+
+    <section class="panel" aria-labelledby="conn-h">
+      <h2 id="conn-h">Connection & settings</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="tok">Hugging Face token</label>
+          <input id="tok" type="password" autocomplete="off" spellcheck="false" placeholder="hf_…" value=${token}
+            onInput=${e => onToken(e.target.value)} />
+        </div>
+        <div class="field">
+          <span class="lbl">Token storage</span>
+          <div class="row">
+            <label><input id="remember" type="checkbox" checked=${remember} onChange=${e => onRemember(e.target.checked)} /> Remember on this device</label>
+            <button class="btn small" type="button" onClick=${onForget}>Forget</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="model">Model</label>
+          <select id="model" value=${preset} onChange=${e => setPreset(e.target.value)}>
+            ${MODEL_PRESETS.map(m => html`<option value=${m.id}>${m.label}</option>`)}
+            <option value=${CUSTOM}>Custom model ID…</option>
+          </select>
+        </div>
+        ${preset === CUSTOM && html`<div class="field">
+          <label for="custom-model">Custom model ID</label>
+          <input id="custom-model" type="text" spellcheck="false" placeholder="owner/model-name" value=${customModel}
+            onInput=${e => setCustomModel(e.target.value)} />
+        </div>`}
+        <div class="field">
+          <label for="temp">Weirdness (temperature): <output for="temp">${temperature.toFixed(1)}</output></label>
+          <input id="temp" type="range" min=${TEMP.min} max=${TEMP.max} step=${TEMP.step} value=${temperature}
+            onInput=${e => setTemperature(Math.round(parseFloat(e.target.value) * 10) / 10)} />
+        </div>
+        <div class="field">
+          <label for="maxtok">Max tokens</label>
+          <input id="maxtok" type="number" min=${TOKENS.min} max=${TOKENS.max} step="32" value=${maxTokens}
+            onChange=${e => { const n = parseInt(e.target.value, 10); setMaxTokens(Number.isFinite(n) ? Math.min(TOKENS.max, Math.max(TOKENS.min, n)) : TOKENS.def); }} />
+        </div>
+        <div class="field">
+          <label><input id="stream" type="checkbox" checked=${stream} onChange=${e => setStream(e.target.checked)} /> Stream output</label>
+        </div>
+      </div>
+      <p class="hint">The token is sent only to ${ENDPOINT} and is never included in exports. It needs the “Make calls to Inference Providers” permission.</p>
+      ${storageMsg && html`<p class="msg info" role="status">${storageMsg}</p>`}
+    </section>
+
+    <section class="panel" aria-labelledby="seed-h">
+      <h2 id="seed-h"><label for="seed">Seed idea</label></h2>
+      <textarea id="seed" placeholder="e.g. A tool that helps neighbours share rarely used tools" value=${seed}
+        onInput=${e => setSeed(e.target.value)}></textarea>
+      <div class="row" style=${{ marginTop: '8px' }}>
+        <button class="btn primary" type="button" disabled=${busy} onClick=${() => run(null, 'seed')}>Jam on this seed</button>
+        ${busy && html`<button class="btn" type="button" onClick=${() => ctrlRef.current?.abort()}>Stop</button>`}
+        <button class="btn" type="button" disabled=${busy || !cards.length} onClick=${clearJam}>Clear jam</button>
+        ${busy && html`<span role="status">Generating…</span>`}
+      </div>
+      ${error && html`<p class="msg error" role="alert">${error}</p>`}
+    </section>
+
+    <div class="layout">
+      <main class="thread" aria-label="Idea thread">
+        ${ordered.length === 0 && html`<p class="empty">No ideas yet. Write a seed and press “Jam on this seed”.</p>`}
+        ${ordered.map(({ card, depth, parent }) => html`<${Card} key=${card.id} card=${card} depth=${depth} parent=${parent}
+          busy=${busy} onAct=${run} onKeep=${toggleKeep} />`)}
+      </main>
+      <aside class="panel" aria-labelledby="kept-h">
+        <h2 id="kept-h">Kept ideas (${kept.length})</h2>
+        ${kept.length === 0 ? html`<p class="empty">Press ☆ Keep on an idea to collect it here.</p>` : html`<ul class="kept-list">
+          ${kept.map(c => html`<li key=${c.id}>
+            <a href=${'#' + c.id}>#${c.num} ${titleOf(c)}</a>
+            <div class="hint">${moveLabel(c)}</div>
+            <button class="btn small" type="button" onClick=${() => toggleKeep(c.id)}>Unkeep</button>
+          </li>`)}
+        </ul>`}
+        <div class="row" style=${{ marginTop: '10px' }}>
+          <button class="btn primary" type="button" disabled=${!kept.length} onClick=${exportMd}>Export Markdown</button>
+        </div>
+      </aside>
+    </div>
+  </div>`;
+}
+
+const mount = document.getElementById('app');
+mount.textContent = '';
+render(html`<${App} />`, mount);
+</script>
+</body>
+</html>
